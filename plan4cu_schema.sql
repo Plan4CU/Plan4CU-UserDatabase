@@ -63,11 +63,15 @@ CREATE TABLE Section
 (
     section_id   INT  NOT NULL PRIMARY KEY, -- call num
     section_num  INT  NOT NULL,             -- 001, 002, ...
+    p_uni        VARCHAR(7) NOT NULL,
     capacity     INT  NOT NULL,
     num_enrolled INT,
     day          VARCHAR(15),               -- MW, TuTh, etc.
     start_time   TIME NOT NULL,
-    end_time     TIME NOT NULL
+    end_time     TIME NOT NULL,
+    semester     VARCHAR(2),                 -- FL, SP
+    year         YEAR,
+    FOREIGN KEY (p_uni) REFERENCES Professor (p_uni)
 );
 
 CREATE TABLE Course
@@ -75,14 +79,10 @@ CREATE TABLE Course
     course_id   VARCHAR(10)  NOT NULL PRIMARY KEY, -- COMS4153W
     course_name VARCHAR(255) NOT NULL,
     call_num    INT          NOT NULL,
-    p_uni       VARCHAR(7)   NOT NULL,
     credits     INT          NOT NULL,
     is_prereq   BOOLEAN      NOT NULL,
     has_prereq  BOOLEAN      NOT NULL,
     is_core     BOOLEAN      NOT NULL,
-    semester    VARCHAR(2),                        -- FA, SP
-    year        YEAR,
-    FOREIGN KEY (p_uni) REFERENCES Professor (p_uni),
     FOREIGN KEY (call_num) REFERENCES Section (section_id)
 );
 
@@ -211,21 +211,21 @@ INSERT INTO Professor (p_uni, first_name, last_name) VALUES
 ('bsb2151', 'Brian', 'Borowski'),
 ('psb15', 'Paul', 'Blaer');
 
-INSERT INTO Section (section_id, section_num, capacity, num_enrolled, day, start_time, end_time) VALUES
-(11941, 003, 250, 267, 'Fr', '10:10:00', '12:40:00'),
-(11837, 005, 106, 93, 'MoWe', '14:40:00', '15:55:00'),
-(12196, 001, 210, 119, 'TuTh', '08:40:00', '09:55:00'),
-(13270, 002, 180, 172, 'MoWe', '16:10:00', '17:25:00'),
-(11932, 001, 250, 213, 'MoWe', '16:10:00', '17:25:00'),
-(12617, 001, 50, 37, 'TuTh', '14:40:00', '15:55:00');
+INSERT INTO Section (section_id, section_num, p_uni, capacity, num_enrolled, day, start_time, end_time, semester, year) VALUES
+(11941, 003, 'dff9', 250, 267, 'Fr', '10:10:00', '12:40:00', 'FA', 2024),
+(11837, 005, 'gd2572', 106, 93, 'MoWe', '14:40:00', '15:55:00', 'SP', 2023),
+(12196, 001, 'skg21', 210, 119, 'TuTh', '08:40:00', '09:55:00', 'FA', 2023),
+(13270, 002, 'er2741', 180, 172, 'MoWe', '16:10:00', '17:25:00', 'SP', 2024),
+(11932, 001, 'bsb2151', 250, 213, 'MoWe', '16:10:00', '17:25:00', 'FA', 2024),
+(12617, 001, 'psb15', 50, 37, 'TuTh', '14:40:00', '15:55:00', 'FA', 2024);
 
-INSERT INTO Course (course_id, course_name, call_num, p_uni, credits, is_prereq, has_prereq, is_core, semester, year) VALUES
-('COMS4111W', 'Introduction to Databases', 11941, 'dff9', 3, FALSE, FALSE, FALSE, 'FA', 2024),
-('MATH1101UN', 'Calculus I', 11837, 'gd2572', 3, TRUE, FALSE, TRUE, 'SP', 2023),
-('ECON1105UN', 'Principles of Economics', 12196, 'skg21', 4, TRUE, FALSE, TRUE, 'FA', 2023),
-('PHYS1201UN', 'General Physics I', 13270, 'er2741', 3, TRUE, FALSE, FALSE, 'SP', 2024),
-('COMS3134W', 'Data Structures in Java', 11932, 'bsb2151', 3, TRUE, TRUE, TRUE, 'FA', 2024),
-('COMS3137W', 'Honors Data Structures & Algorithms', 12617, 'psb15', 4, TRUE, TRUE, FALSE, 'FA', 2024);
+INSERT INTO Course (course_id, course_name, call_num, credits, is_prereq, has_prereq, is_core) VALUES
+('COMS4111W', 'Introduction to Databases', 11941, 3, FALSE, FALSE, FALSE),
+('MATH1101UN', 'Calculus I', 11837, 3, TRUE, FALSE, TRUE),
+('ECON1105UN', 'Principles of Economics', 12196, 4, TRUE, FALSE, TRUE),
+('PHYS1201UN', 'General Physics I', 13270, 3, TRUE, FALSE, FALSE),
+('COMS3134W', 'Data Structures in Java', 11932, 3, TRUE, TRUE, TRUE),
+('COMS3137W', 'Honors Data Structures & Algorithms', 12617, 4, TRUE, TRUE, FALSE);
 
 INSERT INTO Waitlist (waitlist_id, section_id, capacity, num_enrolled) VALUES
 (1, 11941, 250, 23),
