@@ -3,7 +3,7 @@ USE registrar_data;
 
 DROP TABLE IF EXISTS EquivCourses, wasReviewed, Review, CulpaCourse,
     CulpaProf, Requires, Requirement, Joins, Waitlist, Course, Section,
-    Professor, Student, MajorTrack, Minor, Major, School;
+    Schedule, SchedCourse, Professor, Student, MajorTrack, Major, School;
 
 
 /* Create the tables */
@@ -33,7 +33,7 @@ CREATE TABLE MajorTrack
 (
     track_id   INT PRIMARY KEY,
     track_name VARCHAR(255), -- Applications, Artificial Intelligence, etc.
-    major_id   VARCHAR(4),
+    major_id   VARCHAR(4) NOT NULL,
     FOREIGN KEY (major_id) REFERENCES Major (major_id)
 );
 
@@ -42,9 +42,9 @@ CREATE TABLE Student
     s_uni       VARCHAR(7)   NOT NULL PRIMARY KEY,
     first_name  VARCHAR(255) NOT NULL,
     last_name   VARCHAR(255) NOT NULL,
-    grad_year   YEAR,
+    grad_year   YEAR NOT NULL,
     total_creds INT,
-    major_id    VARCHAR(4)   NOT NULL, -- COMS, PHED, MATH
+    major_id    VARCHAR(4), -- COMS, PHED, MATH
     # minor_id    VARCHAR(4)   DEFAULT NULL,
     track_id    INT,
     FOREIGN KEY (major_id) REFERENCES Major (major_id),
@@ -69,9 +69,10 @@ CREATE TABLE Section
     day          VARCHAR(15),               -- MW, TuTh, etc.
     start_time   TIME NOT NULL,
     end_time     TIME NOT NULL,
-    semester     VARCHAR(2),                 -- FL, SP
+    semester     VARCHAR(2) NOT NULL,                 -- FA, SP
     year         YEAR,
-    FOREIGN KEY (p_uni) REFERENCES Professor (p_uni)
+    FOREIGN KEY (p_uni) REFERENCES Professor (p_uni),
+    INDEX (semester, year)
 );
 
 CREATE TABLE Course
@@ -86,6 +87,23 @@ CREATE TABLE Course
     FOREIGN KEY (call_num) REFERENCES Section (section_id)
 );
 
+CREATE TABLE Schedule (
+    sched_id INT AUTO_INCREMENT PRIMARY KEY,
+    s_uni VARCHAR(7) NOT NULL,
+    semester VARCHAR(2) NOT NULL,
+    year INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (s_uni) REFERENCES Student (s_uni)
+);
+
+CREATE TABLE SchedCourse(
+    sched_id INT NOT NULL,
+    section_id INT NOT NULL,
+    PRIMARY KEY (sched_id, section_id),
+    FOREIGN KEY (sched_id) REFERENCES Schedule (sched_id) ON DELETE CASCADE,
+    FOREIGN KEY (section_id) REFERENCES Section (section_id) ON DELETE CASCADE
+);
+
 CREATE TABLE Waitlist
 (
     waitlist_id  INT PRIMARY KEY AUTO_INCREMENT, -- not sure how waitlists are identified in SSOL db
@@ -95,7 +113,7 @@ CREATE TABLE Waitlist
     FOREIGN KEY (section_id) REFERENCES Section (section_id)
 );
 
-CREATE TABLE Joins
+CREATE TABLE Joins -- students join waitlist
 (
     join_id     INT PRIMARY KEY AUTO_INCREMENT,
     s_uni       VARCHAR(7) NOT NULL,
@@ -151,7 +169,8 @@ CREATE TABLE Review
     post_date   DATE,
     review_text TEXT          NOT NULL,
     p_rating    DECIMAL(3, 2) NOT NULL,
-    FOREIGN KEY (c_course_id) REFERENCES CulpaCourse (c_course_id)
+    FOREIGN KEY (c_course_id) REFERENCES CulpaCourse (c_course_id),
+    INDEX (c_course_id)
 );
 
 CREATE TABLE wasReviewed
@@ -281,3 +300,12 @@ INSERT INTO wasReviewed (review_id, c_prof_id, c_course_id) VALUES
 
 INSERT INTO EquivCourses (course1, course2) VALUES
 ('COMS3134W', 'COMS3137W');
+
+INSERT INTO Schedule (s_uni, semester, year) VALUES
+('jmd1234', 'FA', 2024),
+('jrs4567', 'SP', 2024);
+
+INSERT INTO SchedCourse (sched_id, section_id) VALUES
+(1, 11941), -- John Doe's FA 2024 schedule with "Introduction to Databases"
+(1, 11837), -- John Doe's FA 2024 schedule with "Calculus I"
+(2, 13270); -- Jane Smith's SP 2024 schedule with "General Physics I"
