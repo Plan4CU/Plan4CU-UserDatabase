@@ -59,7 +59,7 @@ CREATE TABLE User_Major (
     PRIMARY KEY (user_id, major_id)
 );
 
-CREATE INDEX idx_users_email ON Users(email);
+CREATE INDEX idx_users_email ON User(email);
 
 CREATE TABLE Professor
 (
