@@ -7,84 +7,65 @@ DROP TABLE IF EXISTS EquivCourses, wasReviewed, Review, CulpaCourse,
 
 
 /* Create the tables */
-CREATE TABLE School -- necessary to include?
-(
-    school_id   VARCHAR(4) PRIMARY KEY,
+CREATE TABLE School (
+    school_id VARCHAR(4) PRIMARY KEY,
     school_name VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE Major
-(
-    major_id   VARCHAR(4) PRIMARY KEY,
-    major_name VARCHAR(255) NOT NULL,
-    school_id  VARCHAR(4)   NOT NULL, -- CC, SEAS, SART, etc.
+CREATE TABLE Course (
+    course_id VARCHAR(10) NOT NULL PRIMARY KEY,
+    course_name VARCHAR(255) NOT NULL,
+    credits INT NOT NULL,
+    school_id VARCHAR(4) NOT NULL,
     FOREIGN KEY (school_id) REFERENCES School (school_id)
 );
 
-# CREATE TABLE Minor
-# (
-#     minor_id   VARCHAR(4) PRIMARY KEY, -- COMS, ECON, etc.
-#     minor_name VARCHAR(255) NOT NULL,
-#     school_id  VARCHAR(4)   NOT NULL,  -- CC, SEAS, SART, etc.
-#     FOREIGN KEY (school_id) REFERENCES School (school_id)
-# );
-
-CREATE TABLE MajorTrack
-(
-    track_id   INT PRIMARY KEY,
-    track_name VARCHAR(255), -- Applications, Artificial Intelligence, etc.
-    major_id   VARCHAR(4) NOT NULL,
-    FOREIGN KEY (major_id) REFERENCES Major (major_id)
+CREATE TABLE Section (
+    section_id INT NOT NULL PRIMARY KEY,
+    section_num INT NOT NULL,
+    p_uni VARCHAR(7) NOT NULL,
+    capacity INT NOT NULL,
+    day VARCHAR(15),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    semester VARCHAR(2) NOT NULL,
+    year YEAR,
+    course_id VARCHAR(10) NOT NULL,
+    FOREIGN KEY (course_id) REFERENCES Course (course_id),
+    INDEX (semester, year)
 );
 
-CREATE TABLE Student
-(
-    s_uni       VARCHAR(7)   NOT NULL PRIMARY KEY,
-    first_name  VARCHAR(255) NOT NULL,
-    last_name   VARCHAR(255) NOT NULL,
-    grad_year   YEAR NOT NULL,
-    total_creds INT,
-    major_id    VARCHAR(4), -- COMS, PHED, MATH
-    # minor_id    VARCHAR(4)   DEFAULT NULL,
-    track_id    INT,
-    FOREIGN KEY (major_id) REFERENCES Major (major_id),
-    #FOREIGN KEY (minor_id) REFERENCES Minor (minor_id),
-    FOREIGN KEY (track_id) REFERENCES MajorTrack (track_id)
+CREATE TABLE Major (
+    major_id VARCHAR(4) PRIMARY KEY,
+    major_name VARCHAR(255) NOT NULL,
+    school_id VARCHAR(4) NOT NULL,
+    FOREIGN KEY (school_id) REFERENCES School (school_id)
 );
+
+CREATE TABLE User (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    expected_graduation_year INT NOT NULL,
+    expected_graduation_month VARCHAR(10) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE User_Major (
+    user_id INT REFERENCES Users(id),
+    major_id VARCHAR(4) REFERENCES Major(major_id),
+    PRIMARY KEY (user_id, major_id)
+);
+
+CREATE INDEX idx_users_email ON User(email);
 
 CREATE TABLE Professor
 (
     p_uni      VARCHAR(7)   NOT NULL PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     last_name  VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE Section
-(
-    section_id   INT  NOT NULL PRIMARY KEY, -- call num
-    section_num  INT  NOT NULL,             -- 001, 002, ...
-    p_uni        VARCHAR(7) NOT NULL,
-    capacity     INT  NOT NULL,
-    num_enrolled INT,
-    day          VARCHAR(15),               -- MW, TuTh, etc.
-    start_time   TIME NOT NULL,
-    end_time     TIME NOT NULL,
-    semester     VARCHAR(2) NOT NULL,                 -- FA, SP
-    year         YEAR,
-    FOREIGN KEY (p_uni) REFERENCES Professor (p_uni),
-    INDEX (semester, year)
-);
-
-CREATE TABLE Course
-(
-    course_id   VARCHAR(10)  NOT NULL PRIMARY KEY, -- COMS4153W
-    course_name VARCHAR(255) NOT NULL,
-    call_num    INT          NOT NULL,
-    credits     INT          NOT NULL,
-    is_prereq   BOOLEAN      NOT NULL,
-    has_prereq  BOOLEAN      NOT NULL,
-    is_core     BOOLEAN      NOT NULL,
-    FOREIGN KEY (call_num) REFERENCES Section (section_id)
 );
 
 CREATE TABLE Schedule (
